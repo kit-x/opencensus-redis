@@ -8,21 +8,21 @@ import (
 	"go.opencensus.io/trace"
 )
 
-type redisHook struct {
+type RedisHook struct {
 	opt *TraceOptions
 }
 
-func New(opts ...TraceOption) redis.Hook {
-	opt := _defaultOptions
+func New(opts ...TraceOption) *RedisHook {
+	opt := defaultOptions
 	for _, o := range opts {
 		o(&opt)
 	}
-	return &redisHook{
+	return &RedisHook{
 		opt: &opt,
 	}
 }
 
-func (r *redisHook) BeforeProcess(ctx context.Context, cmd redis.Cmder) (context.Context, error) {
+func (r *RedisHook) BeforeProcess(ctx context.Context, cmd redis.Cmder) (context.Context, error) {
 	if !r.opt.Enable(cmd) {
 		return ctx, nil
 	}
@@ -41,7 +41,7 @@ func (r *redisHook) BeforeProcess(ctx context.Context, cmd redis.Cmder) (context
 	return ctx, nil
 }
 
-func (r *redisHook) AfterProcess(ctx context.Context, cmd redis.Cmder) error {
+func (r *RedisHook) AfterProcess(ctx context.Context, cmd redis.Cmder) error {
 	if !r.opt.Enable(cmd) {
 		return nil
 	}
@@ -52,7 +52,7 @@ func (r *redisHook) AfterProcess(ctx context.Context, cmd redis.Cmder) error {
 	return nil
 }
 
-func (r *redisHook) BeforeProcessPipeline(ctx context.Context, cmds []redis.Cmder) (context.Context, error) {
+func (r *RedisHook) BeforeProcessPipeline(ctx context.Context, cmds []redis.Cmder) (context.Context, error) {
 	if r.opt.AllowRoot || trace.FromContext(ctx) != nil {
 		var span *trace.Span
 		ctx, span = trace.StartSpan(ctx, "redis.pipeline", trace.WithSpanKind(trace.SpanKindClient))
@@ -61,7 +61,7 @@ func (r *redisHook) BeforeProcessPipeline(ctx context.Context, cmds []redis.Cmde
 	return ctx, nil
 }
 
-func (r *redisHook) AfterProcessPipeline(ctx context.Context, cmds []redis.Cmder) error {
+func (r *RedisHook) AfterProcessPipeline(ctx context.Context, cmds []redis.Cmder) error {
 	if span := trace.FromContext(ctx); span != nil {
 		setSpanStatus(span, firstCmdsErr(cmds))
 		span.End()

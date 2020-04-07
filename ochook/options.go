@@ -22,7 +22,7 @@ type TraceOptions struct {
 	DefaultAttributes []trace.Attribute
 }
 
-var _defaultOptions = TraceOptions{
+var defaultOptions = TraceOptions{
 	Enable: func(cmd redis.Cmder) bool {
 		return cmd.Name() != "ping"
 	},
